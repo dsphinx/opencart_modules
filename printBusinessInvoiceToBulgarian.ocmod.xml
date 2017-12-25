@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+    <name>Print Business Invoice to Bulgarian</name>
+    <version>1.0</version>
+    <code>Print Business Invoice to Bulgarian</code>
+    <author>Rocean</author>
+    <link>http://www.apps4net.com</link>
+
+    <file path="admin/view/template/sale/order_info.tpl">
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                   <div class="pull-right">
+                ]]>
+            </search>
+            <add position="replace"><![CDATA[
+				<div class="pull-right"><select name="getInvoice" id="getInvoice" class="form-control"><option value="Invoice">Invoice</option><option value="BusinessInvoice">фактура</option></select>
+                ]]>
+            </add>
+        </operation>
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                   $(document).ready(function() {
+                ]]>
+            </search>
+            <add position="before"><![CDATA[
+
+                // ΠΡΟΣΘΗΚΗ fracturaInvoice
+				$('#getInvoice').on('change', function() {
+                    document.cookie = "invoiceKind="+$(this).val();
+                });
+                // ΤΕΛΟΣ ΠΡΟΣΘΗΚΗΣ
+
+                ]]>
+            </add>
+        </operation>
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                   $(document).ready(function() {
+                ]]>
+            </search>
+            <add position="after"><![CDATA[
+
+                // ΠΡΟΣΘΗΚΗ greeklishInvoice
+                document.cookie = "invoiceKind="+$(this).val();
+                // ΤΕΛΟΣ ΠΡΟΣΘΗΚΗΣ
+
+                ]]>
+            </add>
+        </operation>
+
+    </file>
+
+    <file path="admin/view/template/sale/order_invoice.tpl">
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                   <div class="container">
+                ]]>
+            </search>
+            <add position="after"><![CDATA[
+                <?php if ($_COOKIE['invoiceKind']!=='BusinessInvoice') { ?>
+            ]]></add>
+        </operation>
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                   </body>
+                ]]>
+            </search>
+            <add position="before" offset="1"><![CDATA[
+                <?php } else { ?>
+                    <?php foreach ($orders as $order) {
+                        $fracturaKind = array('оригинал', 'копие');
+
+                        foreach ($fracturaKind as $fractura) { ?>
+                    <div style="page-break-after: always;">
+                        <h1 style="text-align:center;">фактура</h1>
+                        <table class="table-condensed" style="width:100%;">
+                        <thead>
+                            <td colspan="2" style="text-align:center;"><?php echo $fractura; ?></td>
+                        </thead>
+                        <tbody>
+                            <tr>
+                            <td style="width: 50%;"></td>
+                            <td style="width: 50%;"><b><?php echo $text_date_added; ?></b> <?php echo $order['date_added']; ?><br />
+                                <?php if ($order['invoice_no']) { ?>
+                                <b><?php echo $text_invoice_no; ?></b> <?php echo $order['invoice_no']; ?><br />
+                                <?php } ?>
+                                <b><?php echo $text_order_id; ?></b> <?php echo $order['order_id']; ?><br />
+                                </td>
+                            </tr>
+                        </tbody>
+                        </table>
+                        <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <td style="width: 50%;"><b>доставчик</b></td>
+                                <td style="width: 50%;"><b>Получател</b></td>
+                            </tr>
+                            </thead>
+                        <tbody>
+                            <tr>
+                            <td><address>
+                                <strong><?php echo $order['store_name']; ?></strong><br />
+                                <?php echo $order['store_address']; ?>
+                                </address>
+                                <b><?php echo $text_telephone; ?></b> <?php echo $order['store_telephone']; ?><br />
+                                <?php if ($order['store_fax']) { ?>
+                                <b><?php echo $text_fax; ?></b> <?php echo $order['store_fax']; ?><br />
+                                <?php } ?>
+                                <b><?php echo $text_email; ?></b> <?php echo $order['store_email']; ?><br />
+                                <b><?php echo $text_website; ?></b> <a href="<?php echo $order['store_url']; ?>"><?php echo $order['store_url']; ?></a>
+                                    </td>
+                                    
+                            <td><address>
+                                
+                                    <?php echo $order['payment_address']; ?>
+                                    </address>
+                                    <?php
+                                        if($order['customer_kind']=="Business Account") {
+                                    ?>
+                                            <p><strong>Лице за контакт:</strong> <?php echo $order['payment_customer_firstname']. ' ' . $order['payment_customer_lastname']; ?></p>
+                                    <?php
+                                        }
+                                    ?>
+                                    </td>
+                            </tr>
+                        </tbody>
+                        </table>
+                        <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                            <td><b><?php echo $column_product; ?></b></td>
+                            <td><b><?php echo $column_model; ?></b></td>
+                            <td class="text-right"><b><?php echo $column_quantity; ?></b></td>
+                            <td class="text-right"><b><?php echo $column_price; ?></b></td>
+                            <td class="text-right"><b><?php echo $column_total; ?></b></td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($order['product'] as $product) { ?>
+                            <tr>
+                            <td><?php echo $product['name']; ?>
+                                <?php foreach ($product['option'] as $option) { ?>
+                                <br />
+                                &nbsp;<small> - <?php echo $option['name']; ?>: <?php echo $option['value']; ?></small>
+                                <?php } ?></td>
+                            <td><?php echo $product['model']; ?></td>
+                            <td class="text-right"><?php echo $product['quantity']; ?></td>
+                            <td class="text-right"><?php echo $product['price']; ?></td>
+                            <td class="text-right"><?php echo $product['total']; ?></td>
+                            </tr>
+                            <?php } ?>
+                            <?php foreach ($order['voucher'] as $voucher) { ?>
+                            <tr>
+                            <td><?php echo $voucher['description']; ?></td>
+                            <td></td>
+                            <td class="text-right">1</td>
+                            <td class="text-right"><?php echo $voucher['amount']; ?></td>
+                            <td class="text-right"><?php echo $voucher['amount']; ?></td>
+                            </tr>
+                            <?php } ?>
+                            <?php foreach ($order['total'] as $total) { ?>
+                            <tr>
+                            <td class="text-right" colspan="4"><b><?php echo $total['title']; ?></b></td>
+                            <td class="text-right"><?php echo $total['text']; ?></td>
+                            </tr>
+                            <?php } ?>
+                        </tbody>
+                        </table>
+
+                        <table class="table table-bordered">
+                            <td>
+                                <table class="table-condensed" style="width: 100%;">
+                                    <td style="width:30%;">Дата на данъчно събитие:</td>
+                                    <td><?php echo date('d.m.Y'); ?></td>
+                                </table>
+                                <?php
+                                    if(!$order['hasVAT']) { ?>
+                                        <table class="table-condensed" style="width: 100%;">
+                                            <td style="width:30%;">Основание за нулева ставка:</td>
+                                            <td>Основание за прилагане на <br>
+                                                ставка 0%, чл.53, ал.1 във<br>
+                                                връзка с чл.7 от ЗДДС.
+                                            </td>
+                                        </table>
+                                <?php } ?>
+                            </td>
+                            <td>
+                                <table class="table-condensed" style="width: 100%;">
+                                    <td style="width:30%;">Плащане:</td>
+                                    <td>По сметка</td>
+                                </table>
+                                <table class="table-condensed" style="width: 100%;">
+                                    <td style="width:30%;">IBAN:</td>
+                                    <td>BG27UNCR70001522883676</td>
+                                </table>
+                                <table class="table-condensed" style="width: 100%;">
+                                    <td style="width:30%;">Банка:</td>
+                                    <td>Unicredit Bulbank</td>
+                                </table>
+                                <table class="table-condensed" style="width: 100%;">
+                                    <td style="width:30%;">Банков код:</td>
+                                    <td>UNCRBGSF</td>
+                                </table>
+                        </table>
+
+                        <table class="table-condensed" style="width: 100%;">
+                            <td class="text-center">
+                                Получил: <?php echo $order['payment_customer_firstname']. ' ' . $order['payment_customer_lastname']; ?>
+                            </td>
+                            <td ass="text-center">
+                                Съставил: Димитър Михов
+                            </td>
+                        </table>
+
+                        <br><br>
+                        <p>Съгласно чл. 6, ал. 1 от Закона за счетоводството, чл. 114 от ЗДДС и чл. 78 от ППЗДДС печатът и подписът не са задължителни  реквизити във фактурата.</p>
+                        <br><br><br>
+
+
+                        <?php if ($order['comment']) { ?>
+                        <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                            <td><b><?php echo $text_comment; ?></b></td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                            <td><?php echo $order['comment']; ?></td>
+                            </tr>
+                        </tbody>
+                        </table>
+                        <?php } ?>
+                    </div>
+                    <?php
+                }
+               }
+            } ?>
+            ]]></add>
+        </operation>
+
+    </file>
+
+</modification>

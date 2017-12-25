@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+    <name>Specials Page With Count Down Timer</name>
+    <version>1.0</version>
+    <code>Specials Page With Count Down Timer</code>
+    <author>Rocean</author>
+    <link>http://www.apps4net.com</link>
+
+    <file path="catalog/model/catalog/product.php">
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                   public function getProductSpecials($data = array()) {
+                ]]>
+            </search>
+            <add position="before" offset="1"><![CDATA[
+                   public function getDateForNextSpecial()
+                   {
+                       $sql = "SELECT ps.date_start FROM " . DB_PREFIX .
+                           "product_special ps WHERE ps.date_start > NOW() ORDER BY ps.date_start ASC LIMIT 1";
+
+                       $query = $this->db->query($sql);
+
+                       if(isset($query->rows[0])) {
+                           $result = $query->rows[0];
+                       } else {
+                           $resuls = null;
+                       }
+
+                       return $result;
+                   }
+            ]]>
+            </add>
+        </operation>
+
+    </file>
+
+    <file path="catalog/controller/product/special.php">
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                   $data['header'] = $this->load->controller('common/header');
+                ]]>
+            </search>
+            <add position="after"><![CDATA[
+               $data['special_next_date'] = $this->model_catalog_product->getDateForNextSpecial();
+            ]]>
+            </add>
+        </operation>
+
+    </file>
+
+    <file path="catalog/view/theme/default/template/product/special.tpl">
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                   <div id="content" class="<?php echo $class; ?>"><?php echo $content_top; ?>
+                ]]>
+            </search>
+            <add position="before"><![CDATA[
+                    <input type="hidden" id="specialsDate" value="<?php echo $special_next_date['date_start']; ?>">
+                    <div id="specialsCounterContainer" style="width: 100%; text-align: center;">
+                        <span id="specialsCounter" style="width: 15em; font-size: 2em;">
+                        </span>
+                    </div>
+            ]]>
+            </add>
+        </operation>
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                   <?php echo $footer; ?>
+                ]]>
+            </search>
+            <add position="after"><![CDATA[
+                    <script type="text/javascript">
+
+                        function addZero(i) {
+                            if (i < 10) {
+                                i = "0" + i;
+                            }
+                            return i;
+                        }
+
+                        function convertMyDate(myDate)
+                        {
+                            var dateParts = myDate.split('-');
+
+                            return new Date(dateParts[0], dateParts[1]-1, dateParts[2]);
+                        }
+
+                        function showRemaining() {
+                            var now = new Date();
+                            var distance = end - now;
+
+                            if (distance < 0) {
+                                clearInterval(timer);
+                                document.querySelector('#specialsCounter').innerHTML = 'EXPIRED!';
+                                return;
+                            }
+
+                            var days = Math.floor(distance / _day);
+                            var hours = Math.floor((distance % _day) / _hour);
+                            var minutes = Math.floor((distance % _hour) / _minute);
+                            var seconds = Math.floor((distance % _minute) / _second);
+
+                            document.querySelector('#specialsCounter').innerHTML =
+                                '<b>' + days + '</b>' + ' ' + (days>1 ? 'days' : 'day') + ', ' +
+                                '<b>' + addZero(hours) + '</b>' + ' ' + (hours>1 ? 'hours' : 'hour') + ', ' +
+                                '<b>' + addZero(minutes) + '</b>' + ' ' + (minutes>1 ? 'minutes' : 'minute') + ', ' +
+                                '<b>' + addZero(seconds) + '</b>' + ' ' + (seconds>1 ? 'seconds' : 'second') +
+                                ', until <b>' + specialsDate + '</b>';
+
+                        }
+
+                        var specialsDate = document.querySelector('#specialsDate').value;
+
+                        var end = convertMyDate(specialsDate);
+                        var _second = 1000;
+                        var _minute = _second * 60;
+                        var _hour = _minute * 60;
+                        var _day = _hour * 24;
+                        var timer;
+
+                        timer = setInterval(showRemaining, 1000);
+
+                    </script>
+            ]]>
+            </add>
+        </operation>
+
+    </file>
+
+
+</modification>

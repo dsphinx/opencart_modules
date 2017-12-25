@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+    <name>Disable Bulgarian in Catalog</name>
+    <version>1.0</version>
+    <code>Disable Bulgarian in Catalog</code>
+    <author>Rocean</author>
+    <link>http://www.apps4net.com</link>
+
+
+    <file path="catalog/controller/common/language.php">
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                   $data['languages'][] = array(
+                ]]>
+            </search>
+            <add position="before"><![CDATA[
+                if($result['code']!=='bg')
+                ]]>
+            </add>
+        </operation>
+
+    </file>
+
+</modification>

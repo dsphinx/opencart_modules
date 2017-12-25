@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+    <name>Edit Invoice Number</name>
+    <version>1.0</version>
+    <code>Edit Invoice Number</code>
+    <author>Rocean</author>
+    <link>http://www.apps4net.com</link>
+
+    <file path="admin/view/template/sale/order_info.tpl">
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                   <td id="invoice" class="text-right"><?php echo $invoice_no; ?></td>
+                ]]>
+            </search>
+            <add position="replace"><![CDATA[
+                <td id="invoice" class="text-right">
+                    <?php if ($invoice_no) { ?>
+                      <span id="invoice_all" style="font-weight: bold;"><?php echo $invoice_no; ?></span>
+                      <input type="hidden" id="invoice_prefix" value="<?php echo $invoice_prefix; ?>">
+                      <input type="text" id="invoiceNumber" value="<?php echo $invoice_only_no; ?>" style="width: 4em; text-align: right;">
+                      <button id="edit-invoice" data-loading-text="<?php echo $text_loading; ?>" class="btn btn-primary btn-xs">Change</button>
+                    <?php } ?>
+                </td>
+            ]]>
+            </add>
+        </operation>
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                   $(document).ready(function() {
+                ]]>
+            </search>
+            <add position="before"><![CDATA[
+
+                // Change Invoice Number
+                $('#edit-invoice').on('click', function() {
+                      $.ajax({
+                          url: 'index.php?route=sale/order/editInvoice&token=<?php echo $token; ?>&order_id=<?php echo $order_id; ?>',
+                          dataType: 'json',
+                          type: 'POST',
+                          data: {
+                              invoice_no: $('#invoiceNumber').val(),
+                          },
+                          success: function(json) {
+                              if(json.success===true) {
+                                  $('#invoice_all').fadeOut('slow', function() {
+                                      var invoice_prefix = $('#invoice_prefix').val();
+                                      $(this).html(invoice_prefix + $('#invoiceNumber').val() );
+
+                                      $(this).fadeIn('slow');
+                                  });
+                              }
+                          },
+                          error: function(xhr, ajaxOptions, thrownError) {
+                              console.log(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+                          }
+                      });
+                  });
+
+                ]]>
+            </add>
+        </operation>
+
+    </file>
+
+    <file path="admin/controller/sale/order.php">
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                        public function shipping() {
+                    ]]>
+            </search>
+            <add position="before"><![CDATA[
+                // Αλλαγή του invoice number
+                public function editInvoice() {
+
+                    if (isset($this->request->get['order_id'])) {
+                        if ($this->request->server['REQUEST_METHOD'] == 'POST') {
+                            if($this->db->query("UPDATE " . DB_PREFIX . "order SET invoice_no = '" .
+                                $this->db->escape($this->request->post['invoice_no']) . "' WHERE order_id = '" .
+                                $this->request->get['order_id'] . "'")) {
+                                    $json['success'] = true;
+                                } else {
+                                    $json['success'] = false;
+                                }
+
+                            $this->response->addHeader('Content-Type: application/json');
+                            $this->response->setOutput(json_encode($json));
+                        }
+                    }
+                }
+                    ]]>
+            </add>
+        </operation>
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                        $data['invoice_no'] = $order_info['invoice_prefix'] . $order_info['invoice_no'];
+                    ]]>
+            </search>
+            <add position="after"><![CDATA[
+                        $data['invoice_only_no'] = $order_info['invoice_no'];
+                        $data['invoice_prefix'] = $order_info['invoice_prefix'];
+                    ]]>
+            </add>
+        </operation>
+
+    </file>
+
+
+</modification>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+    <name>Hide Newsletter Subscription</name>
+    <version>1.0</version>
+    <code>Hide Newsletter Subscription</code>
+    <author>Rocean</author>
+    <link>http://www.apps4net.com</link>
+
+    <file path="catalog/view/theme/default/template/checkout/register.tpl">
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                   <label for="newsletter">
+                ]]>
+            </search>
+            <add position="before" offset="1"><![CDATA[
+                <div id="subscribeToNewsletter" style="display: none;">
+            ]]></add>
+        </operation>
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                   <label for="newsletter">
+                ]]>
+            </search>
+            <add position="after" offset="3"><![CDATA[
+                </div>
+            ]]></add>
+        </operation>
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                   <input type="checkbox" name="newsletter" value="1" id="newsletter" />
+                ]]>
+            </search>
+            <add position="replace"><![CDATA[<input type="checkbox" name="newsletter" value="1" id="newsletter" checked="checked" />]]></add>
+        </operation>
+
+    </file>
+
+</modification>

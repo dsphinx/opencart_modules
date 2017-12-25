@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+    <name>Change Invoice</name>
+    <version>1.0</version>
+    <code>Change Invoice</code>
+    <author>Rocean</author>
+    <link>http://www.apps4net.com</link>
+
+    <file path="admin/controller/sale/order.php">
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                    public function invoice() {
+                ]]>
+            </search>
+            <add position="after"><![CDATA[
+                if ($_COOKIE['invoiceKind']=='BusinessInvoice') {
+                    $language = new Language('bg');
+                } else {
+                    $language = new Language('en');
+                }
+                $language->load('sale/order');
+                $customerCompany = $language->get('entry_company');
+                $customerCityPostcode = $language->get('entry_city').'/'.$language->get('entry_postcode');
+                $customerZone = $language->get('entry_zone');
+                $customerTelephone = $language->get('entry_telephone');
+                $customerAddress1 = $language->get('entry_address_1');
+                $customerAddress2 = $language->get('entry_address_2');
+                $customerCountry = $language->get('entry_country');
+                ]]>
+            </add>
+        </operation>
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                    if ($order_info) {
+                ]]>
+            </search>
+            <add position="after"><![CDATA[
+                $this->load->model('customer/customer_group');
+                $customer_group_info = $this->model_customer_customer_group->getCustomerGroup($order_info['customer_group_id']);
+                ]]>
+            </add>
+        </operation>
+        
+        <operation error="log">
+            <search>
+                <![CDATA[
+                    'shipping_address' => $shipping_address,
+                ]]>
+            </search>
+            <add position="after"><![CDATA[
+				'payment_customer_firstname' => $replace['firstname'],              
+                'payment_customer_lastname' => $replace['lastname'],
+                'customer_kind'     => $customer_group_info['name'],
+                'hasVAT' => $hasVAT,
+                ]]>
+
+            </add>
+        </operation>
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                    '{address_1}' . "\n" .
+                ]]>
+            </search>
+            <add position="replace"><![CDATA[
+				'{customer_VAT}' . "\n" . '{address_1}' . "\n" .
+                ]]>
+
+            </add>
+        </operation>
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                    $format = '{firstname} {lastname}' . "\n" . '{company}' . "\n" .
+                ]]>
+            </search>
+            <add position="replace" offset="2"><![CDATA[
+                if(isset($customerZone)) {
+                    if($customer_group_info['name']!=="Business Account") {
+                        $customerName = "{firstname} {lastname} \n";
+                    } else {
+                        $customerName = null;
+                    }
+
+                    $format = $customerName . '<b>'.$customerCompany.'</b> {company}' . "\n" . 
+                    '<b>'.$customerVAT.'</b> {customer_VAT}' . "\n" . '<b>'.$customerAddress1.'</b> {address_1}' . "\n" .
+                    '<b>'.$customerAddress2.'</b> {address_2}' . "\n" . '<b>'.$customerCityPostcode.'</b> {city} {postcode}' . "\n" . 
+                    '<b>'.$customerZone.'</b> {zone}' . "\n" . '<b>'.$customerCountry.'</b> {country}'
+                    . "\n" . '<b>'.$customerTelephone.'</b> {telephone}';
+                } else {
+                    $format = '{firstname} {lastname}' . "\n" . '{company}' . "\n" . '{address_1}' . "\n" . '{address_2}' . "\n" . '{city} {postcode}' . "\n" . '{zone}' . "\n" . '{country}' . "\n" . '{telephone}';
+                }
+                ]]>
+
+            </add>
+        </operation>
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                    $find = array(
+                ]]>
+            </search>
+            <add position="after" offset="3"><![CDATA[
+				'{customer_VAT}',
+				'{telephone}',
+                ]]>
+
+            </add>
+        </operation>
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                    $replace = array(
+                ]]>
+            </search>
+            <add position="after" offset="3"><![CDATA[
+				'customer_VAT'       => $order_info['payment_custom_field'][1],
+				'telephone'       => $order_info['telephone'],
+                ]]>
+
+            </add>
+        </operation>
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                    $data['title'] = $this->language->get('text_invoice');
+                ]]>
+            </search>
+            <add position="after"><![CDATA[
+				$this->load->model('customer/custom_field');
+                if ($_COOKIE['invoiceKind']=='BusinessInvoice') {
+                    $this->config->set('config_language_id',4);
+                    $vatIndex=0;
+                } else {
+                    $vatIndex=1;
+                }
+                $custom_fields = $this->model_customer_custom_field->getCustomFields();
+                $customerVAT = $custom_fields[$vatIndex]['name'];
+                ]]>
+            </add>
+        </operation>
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                    $data['title'] = $this->language->get('text_invoice');
+                ]]>
+            </search>
+            <add position="after" offset="21"><![CDATA[
+				// INVOICE DATA
+                ]]>
+            </add>
+        </operation>
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                    $options = $this->model_sale_order->getOrderOptions($order_id, $product['order_product_id']);
+                ]]>
+            </search>
+            <add position="after"><![CDATA[
+                    if ($_COOKIE['invoiceKind']=='BusinessInvoice') {
+                        $this->config->set('config_language_id',4);
+                        $this->load->model('catalog/product');
+                        $product['name'] = $this->model_catalog_product->getProduct($product['product_id'])['name'];
+
+                        $order_info['currency_code'] = 'BGN';
+                        $order_info['currency_value'] = 1.95583;
+                    }
+                ]]>
+            </add>
+        </operation>
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                    foreach ($totals as $total) {
+                ]]>
+            </search>
+            <add position="after" offset="6"><![CDATA[
+                $hasVAT=false;
+                if(isset($total_data)) {
+
+                    if($total_data[2]['title']=='ΦΠΑ (20%)') {
+                        $total_data[2]['title']='VAT (20%)';
+                    }
+
+                    if ($_COOKIE['invoiceKind']=='BusinessInvoice') {
+                        $counter = 0;
+                        $hasVAT=false;
+                        foreach ($total_data as $item) {
+                            switch ($item['title']) {
+                                case 'Total': $total_data[$counter]['title'] = 'Тотал'; break;
+                                case 'Sub-Total': $total_data[$counter]['title'] = 'Междинен сбор'; break;
+                                case 'VAT (20%)': $total_data[$counter]['title'] = 'ДДС (20%)'; $hasVAT=true; break;
+                            }
+                            $counter++;
+                        }
+
+                        // $total_data[1]['title']='доставка: '.$total_data[1]['title'];
+
+                    }
+
+                    if($customer_group_info['name']=="Business Account") {
+                        if(!$hasVAT) {
+                            $temp_total = $total_data[sizeof($total_data)-1];
+
+                            if ($_COOKIE['invoiceKind']=='Invoice') {
+                                $myVat = 'VAT (0%)';
+                                $myCurrency = $this->currency->format('0', 'EUR', $order_info['currency_value']);
+                                $total_data[1]['title']='Shipping';
+                            } else {
+                                $myVat = 'ДДС (0%)';
+                                $myCurrency = $this->currency->format('0', 'BGN', $order_info['currency_value']);
+                                $total_data[1]['title']='доставка';
+                            }
+
+                            $total_data[sizeof($total_data)-1] = array(
+                                'title' => $myVat,
+                                'text'  => $myCurrency
+                            );
+
+                            $total_data[] = $temp_total;
+                        }
+
+                    } else {
+                        $total_data[1]['title']='Shipping';
+                    }
+                }
+                ]]>
+            </add>
+        </operation>
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                    // INVOICE DATA
+                ]]>
+            </search>
+            <add position="replace" offset="23"><![CDATA[
+                    $data['text_invoice'] = $language->get('text_invoice');
+                    $data['text_order_detail'] = $language->get('text_order_detail');
+                    $data['text_order_id'] = $language->get('text_order_id');
+                    $data['text_invoice_no'] = $language->get('text_invoice_no');
+                    $data['text_invoice_date'] = $language->get('text_invoice_date');
+                    $data['text_date_added'] = $language->get('text_date_added');
+                    $data['text_telephone'] = $language->get('text_telephone');
+                    $data['text_fax'] = $language->get('text_fax');
+                    $data['text_email'] = $language->get('text_email');
+                    $data['text_website'] = $language->get('text_website');
+                    $data['text_payment_address'] = $language->get('text_payment_address');
+                    $data['text_shipping_address'] = $language->get('text_shipping_address');
+                    $data['text_payment_method'] = $language->get('text_payment_method');
+                    $data['text_shipping_method'] = $language->get('text_shipping_method');
+                    $data['text_comment'] = $language->get('text_comment');
+
+                    $data['column_product'] = $language->get('column_product');
+                    $data['column_model'] = 'Код';
+                    $data['column_quantity'] = $language->get('column_quantity');
+                    $data['column_price'] = $language->get('column_price');
+                    $data['column_total'] = $language->get('column_total');
+                ]]>
+            </add>
+        </operation>
+
+
+    </file>
+
+    <file path="admin/view/template/sale/order_invoice.tpl">
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                   <?php echo $order['payment_address']; ?>
+                ]]>
+            </search>
+            <add position="replace" offset="1"><![CDATA[
+                <?php echo $order['payment_address']; ?>
+                </address>
+                <?php 
+                    if($order['customer_kind']=="Business Account") {
+                ?>
+				        <p><strong>Contact Person:</strong> <?php echo $order['payment_customer_firstname']. ' ' . $order['payment_customer_lastname']; ?></p>
+                <?php
+                    }
+                ?>
+                </td>
+                ]]>
+            </add>
+        </operation>
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                   <?php echo $order['shipping_address']; ?>
+                ]]>
+            </search>
+            <add position="replace" offset="1"><![CDATA[
+                <?php echo $order['shipping_address']; ?>
+				</address>
+                <?php 
+                    if($order['customer_kind']=="Business Account") {
+                ?>
+				        <p><strong>Contact Person:</strong> <?php echo $order['payment_customer_firstname']. ' ' . $order['payment_customer_lastname']; ?></p>
+                <?php
+                    }
+                ?>
+                </td>
+                ]]>
+            </add>
+        </operation>
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                   <h1><?php echo $text_invoice; ?> #<?php echo $order['order_id']; ?></h1>
+                ]]>
+            </search>
+            <add position="replace" offset="0"><![CDATA[
+                <h1><?php echo $text_invoice; ?></h1>
+                ]]>
+            </add>
+        </operation>
+
+    </file>
+
+</modification>

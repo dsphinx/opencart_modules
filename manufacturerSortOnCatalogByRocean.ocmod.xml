@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+    <name>Add manufacturer sorting on products catalog page</name>
+    <version>1.0</version>
+    <code>Add manufacturer sorting on products catalog page</code>
+    <author>Rocean</author>
+    <link>http://www.apps4net.com</link>
+
+    <file path="catalog/model/catalog/product.php">
+        <operation error="log">
+            <search ><![CDATA[$sql .= " LEFT JOIN " . DB_PREFIX . "product_description pd ON (p.product_id = pd.product_id) LEFT JOIN " . DB_PREFIX . "product_to_store p2s ON (p.product_id = p2s.product_id) WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "' AND p.status = '1' AND p.date_available <= NOW() AND p2s.store_id = '" . (int)$this->config->get('config_store_id') . "'";]]></search>
+            <add position="before"><![CDATA[
+                // ΠΡΟΣΘΗΚΗ
+				$sql .= " LEFT JOIN " . DB_PREFIX . "manufacturer m ON p.manufacturer_id = m.manufacturer_id";
+                // ΤΕΛΟΣ ΠΡΟΣΘΗΚΗΣ
+                ]]>
+
+            </add>
+        </operation>
+
+        <operation error="log">
+            <search ><![CDATA['p.date_added']]></search>
+            <add position="replace"><![CDATA[
+               'p.date_added',
+                // ΠΡΟΣΘΗΚΗ ΓΙΑ ΣΟΡΤΑΡΙΣΜΑ ΜΕ MANUFACTURER
+               'manufacturer'
+                // ΤΕΛΟΣ ΠΡΟΣΘΗΚΗΣ
+                ]]>
+            </add>
+        </operation>
+
+        <operation error="log">
+            <search trim="true"><![CDATA[$sql .= " ORDER BY (CASE WHEN special IS NOT NULL THEN special WHEN discount IS NOT NULL THEN discount ELSE p.price END)";]]></search>
+            <add position="after"><![CDATA[
+		    } elseif ($data['sort'] == 'manufacturer') { // <== this is added
+                $sql .= " ORDER BY m.name";              // <== this is added
+            ]]>
+            </add>
+        </operation>
+
+    </file>
+
+
+    <file path="catalog/controller/product/category.php">
+        <operation error="log">
+            <search ><![CDATA['href'  => $this->url->link('product/category', 'path=' . $this->request->get['path'] . '&sort=p.model&order=DESC' . $url)]]></search>
+            <add position="after" offset="2"><![CDATA[
+				// ΠΡΟΣΘΗΚΗ
+				$data['sorts'][] = array(
+                'text'  => $this->language->get('text_manufacturer_asc'),
+                'value' => 'manufacturer-ASC',
+                'href'  => $this->url->link('product/category', 'path=' . $this->request->get['path'] . '&sort=manufacturer&order=ASC' . $url)
+                );
+
+                $data['sorts'][] = array(
+                    'text'  => $this->language->get('text_manufacturer_desc'),
+                    'value' => 'manufacturer-DESC',
+                    'href'  => $this->url->link('product/category', 'path=' . $this->request->get['path'] . '&sort=manufacturer&order=DESC' . $url)
+                );
+                // ΤΕΛΟΣ ΠΡΟΣΘΗΚΗΣ
+            ]]>
+            </add>
+        </operation>
+    </file>
+
+    <file path="catalog/language/en-gb/product/category.php">
+        <operation error="log">
+            <search ><![CDATA[// Text]]></search>
+            <add position="after"><![CDATA[
+				// ΠΡΟΣΘΗΚΗ
+				$_['text_manufacturer_asc']    = 'Manufacturer (A - Z)';
+                $_['text_manufacturer_desc']   = 'Manufacturer (Z - A)';
+                // ΤΕΛΟΣ ΠΡΟΣΘΗΚΗΣ
+            ]]>
+            </add>
+        </operation>
+    </file>
+
+    <file path="catalog/language/el-gr/product/category.php">
+        <operation error="log">
+            <search ><![CDATA[// Text]]></search>
+            <add position="after"><![CDATA[
+				// ΠΡΟΣΘΗΚΗ
+				$_['text_manufacturer_asc']    = 'Κατασκευαστής (Α - Ω)';
+                $_['text_manufacturer_desc']   = 'Κατασκευαστής (Ω - Α)';
+                // ΤΕΛΟΣ ΠΡΟΣΘΗΚΗΣ
+            ]]>
+            </add>
+        </operation>
+    </file>
+
+
+
+
+
+
+</modification>

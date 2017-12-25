@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+    <name>Convert invoice to greeklish</name>
+    <version>1.0</version>
+    <code>Convert invoice to greeklish</code>
+    <author>Rocean</author>
+    <link>http://www.apps4net.com</link>
+
+    <file path="admin/controller/sale/order.php">
+        
+        <operation error="log">
+            <search>
+                <![CDATA[
+                   $shipping_address = str_replace
+                ]]>
+            </search>
+            <add position="before"><![CDATA[
+                // ΠΡΟΣΘΗΚΗ greeklishInvoice
+                // Μετατροπή σε greeklish αν χρειάζεται
+                if($_COOKIE['greeklish']=='greeklish') {
+                    $newOrder=array();
+                    foreach ($replace as $key => $value) {
+                        $newOrder[$key] = self::GrCyr2Latin($value);
+                    }
+                    $replace = $newOrder;
+                }
+                // ΤΕΛΟΣ ΠΡΟΣΘΗΚΗΣ
+                ]]>
+
+            </add>
+        </operation>
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                   $payment_address = str_replace(
+                ]]>
+            </search>
+            <add position="before"><![CDATA[
+                // ΠΡΟΣΘΗΚΗ greeklishInvoice
+                // Μετατροπή σε greeklish αν χρειάζεται
+                if($_COOKIE['greeklish']=='greeklish') {
+                    $newOrder=array();
+                    foreach ($replace as $key => $value) {
+                        $newOrder[$key] = self::GrCyr2Latin($value);
+                    }
+                    $replace = $newOrder;
+                }
+                // ΤΕΛΟΣ ΠΡΟΣΘΗΚΗΣ
+                ]]>
+
+            </add>
+        </operation>
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                    public function shipping() {
+                ]]>
+            </search>
+            <add position="before"><![CDATA[
+                
+                // ΠΡΟΣΘΗΚΗ greeklishInvoice
+				// Μετατροπή Ελληνικών και Κυριλικών χαρακτήρων σε λατινικούς
+                static function GrCyr2Latin($string) {
+                    $cyr = array(
+                        'а','б','в','г','д','е','ё','ж','з','и','й','к','л','м','н','о','п',
+                        'р','с','т','у','ф','х','ц','ч','ш','щ','ъ','ы','ь','э','ю','я',
+                        'А','Б','В','Г','Д','Е','Ё','Ж','З','И','Й','К','Л','М','Н','О','П',
+                        'Р','С','Т','У','Ф','Х','Ц','Ч','Ш','Щ','Ъ','Ы','Ь','Э','Ю','Я'
+                    );
+                    $lat = array(
+                        'a','b','v','g','d','e','io','zh','z','i','y','k','l','m','n','o','p',
+                        'r','s','t','u','f','h','ts','ch','sh','sht','a','i','y','e','yu','ya',
+                        'A','B','V','G','D','E','Io','Zh','Z','I','Y','K','L','M','N','O','P',
+                        'R','S','T','U','F','H','Ts','Ch','Sh','Sht','A','I','Y','e','Yu','Ya'
+                    );
+                    $greek   = array('α','ά','Ά','Α','β','Β','γ', 'Γ', 'δ','Δ','ε','έ','Ε','Έ','ζ','Ζ','η','ή','Η','θ','Θ','ι','ί','ϊ','ΐ','Ι','Ί', 'κ','Κ','λ','Λ','μ','Μ','ν','Ν','ξ','Ξ','ο','ό','Ο','Ό','π','Π','ρ','Ρ','σ','ς', 'Σ','τ','Τ','υ','ύ','Υ','Ύ','φ','Φ','χ','Χ','ψ','Ψ','ω','ώ','Ω','Ώ',"'","'",',',':','+');
+                    $english = array('a', 'a','A','A','b','B','g','G','d','D','e','e','E','E','z','Z','i','i','I','th','Th', 'i','i','i','i','I','I','k','K','l','L','m','M','n','N','x','X','o','o','O','O','p','P' ,'r','R','s','s','S','t','T','u','u','Y','Y','f','F','ch','Ch','ps','Ps','o','o','O','O','','','_','-','-');
+                    $string  = str_replace($greek, $english, $string);
+                    $string  = str_replace($cyr, $lat, $string);
+                    return $string;
+                }
+                // ΤΕΛΟΣ ΠΡΟΣΘΗΚΗΣ
+
+                ]]>
+
+            </add>
+        </operation>
+
+    </file>
+
+    <file path="admin/view/template/sale/order_info.tpl">
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                   <div class="pull-right">
+                ]]>
+            </search>
+            <add position="replace"><![CDATA[
+				<div class="pull-right"><select name="getGreeklish" id="getGreeklish" class="form-control"><option value="Native">Native</option><option value="greeklish">Greeklish</option></select>
+                ]]>
+            </add>
+        </operation>
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                   $(document).ready(function() {
+                ]]>
+            </search>
+            <add position="before"><![CDATA[
+
+                // ΠΡΟΣΘΗΚΗ greeklishInvoice
+				$('#getGreeklish').on('change', function() {
+                    document.cookie = "greeklish="+$(this).val();
+                });
+                // ΤΕΛΟΣ ΠΡΟΣΘΗΚΗΣ
+
+                ]]>
+            </add>
+        </operation>
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                   $(document).ready(function() {
+                ]]>
+            </search>
+            <add position="after"><![CDATA[
+
+                // ΠΡΟΣΘΗΚΗ greeklishInvoice
+                document.cookie = "greeklish="+$(this).val();
+                // ΤΕΛΟΣ ΠΡΟΣΘΗΚΗΣ
+
+                ]]>
+            </add>
+        </operation>
+
+    </file>
+
+</modification>

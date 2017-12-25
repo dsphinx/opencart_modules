@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+    <name>Hide Customer Info In Dispatch Note</name>
+    <version>1.0</version>
+    <code>Hide Customer Info In Dispatch Note</code>
+    <author>Rocean</author>
+    <link>http://www.apps4net.com</link>
+
+    <file path="admin/view/template/sale/order_shipping.tpl">
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                   <td style="width: 50%;"><b><?php echo $text_shipping_address; ?></b></td>
+                ]]>
+            </search>
+            <add position="before" offset="3"><![CDATA[
+                <span id="hideCustomerInfo" style="cursor: pointer;">_</span>
+                <div id="theCustomerInfo">
+            ]]>
+            </add>
+        </operation>
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                   <?php echo $order['telephone']; ?></td>
+                ]]>
+            </search>
+            <add position="after" offset="3"><![CDATA[
+                </div>
+            ]]>
+            </add>
+        </operation>
+
+        <operation error="log">
+            <search>
+                <![CDATA[
+                   </html>
+                ]]>
+            </search>
+            <add position="after" offset="1"><![CDATA[
+                <script type="text/javascript">
+
+                    $('#hideCustomerInfo').on('click', function() {
+                        if($('#theCustomerInfo').is(':visible')) {
+                            $('#theCustomerInfo').hide('slow');
+                        } else {
+                            $('#theCustomerInfo').show('slow');
+                        }
+
+                    });
+
+                </script>
+            ]]>
+            </add>
+        </operation>
+
+
+
+    </file>
+
+
+</modification>
